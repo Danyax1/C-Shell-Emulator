@@ -6,4 +6,4 @@ help functionality.
 # Members
 - Morales Daniel (Danyax1)
 - Vesselyi Nestor (Vessely1)
-- Klymenko Fedir (???)
+- Klymenko Fedir (FreDDiKnoW)
