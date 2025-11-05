@@ -4,6 +4,17 @@
 static inline char peek(Lexer *L){ return L->charToRead[L->pos]; };
 static inline char next(Lexer *L) { return L->charToRead[L->pos++]; }
 
+bool recognize_keyword(char* str, char* target, int n)
+{
+    if(strncmp(str, target, n) == 0){
+        char end = str[n];
+        if(end == '\0' || end == '\n' || end == '\t' || end == ' '){
+            return true;
+        }
+    }
+    return false;
+}
+
 Token next_token(Lexer *L){
     while(isspace(peek(L))){next(L);};
     char c = peek(L);
@@ -44,7 +55,7 @@ Token next_token(Lexer *L){
     }
     if(isalpha(c) || c == '_'){
         char* start_pos = L->charToRead + L->pos;
-        if(strncmp(start_pos, "not", 3) == 0){
+        if(recognize_keyword(start_pos, "not", 3)){
             L->pos +=3;
             Token t;
             t.type = TOKEN_NOT;
@@ -52,7 +63,7 @@ Token next_token(Lexer *L){
             t.name[TOKEN_TEXT_MAX - 1] = '\0';
             return t;
         }
-        if(strncmp(start_pos, "and", 3) == 0){
+        if(recognize_keyword(start_pos, "and", 3)){
             L->pos +=3;
             Token t;
             t.type = TOKEN_AND;
@@ -60,7 +71,7 @@ Token next_token(Lexer *L){
             t.name[TOKEN_TEXT_MAX - 1] = '\0';
             return t;
         }
-        if(strncmp(start_pos, "or", 2) == 0){
+        if(recognize_keyword(start_pos, "or", 2)){
             L->pos +=2;
             Token t;
             t.type = TOKEN_OR;

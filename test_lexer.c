@@ -44,6 +44,9 @@ int main(void) {
     int t7[] = {TOKEN_IDENT, TOKEN_PLUS, TOKEN_FLOAT, TOKEN_EOL};
     run_test("a+3.14", t7, 4);
 
+    int t8[] = {TOKEN_IDENT, TOKEN_INT, TOKEN_PLUS, TOKEN_EOL};
+    run_test("notnot 1+", t8, 4);
+
 
     printf("\nAll lexer tests passed!\n");
     return 0;
