@@ -11,3 +11,7 @@ lexer: lexer.c
 
 test: test_lexer.c
 	$(CC) $(CFLAGS) lexer.c $< -o $@
+
+debug: CFLAGS += -DDEBUG -g
+debug: test
+	@echo "Built debug version with extra logging"

@@ -9,27 +9,48 @@
 
 #define TOKEN_TEXT_MAX 64
 typedef enum {
+    // syntax
+    TOKEN_EOF = 0,
+    TOKEN_EOL = 1,
+    TOKEN_INDENT,
+    TOKEN_DEDENT,
+    TOKEN_COLON,
+    TOKEN_LPARENT,
+    TOKEN_RPARENT,
+    // keywords
+    TOKEN_IF = 10,
+    TOKEN_ELIF,
+    TOKEN_ELSE,
+    TOKEN_WHILE,
+    TOKEN_PRINT,
     //data types
-    TOKEN_EOL = 0,
-    TOKEN_INT = 10,
+    TOKEN_INT = 20,
     TOKEN_FLOAT,
     TOKEN_IDENT,
+    TOKEN_TRUE,
+    TOKEN_FALSE,
     // ariphmetic
-    TOKEN_PLUS = 20,
+    TOKEN_PLUS = 30,
     TOKEN_MINUS, 
     TOKEN_MULT,
     TOKEN_DIV,
     TOKEN_MODULO,
     TOKEN_DIV_INT,  // python-specific "//" token
+    // comparison
+    TOKEN_EQ = 40,
+    TOKEN_NEQ,
+    TOKEN_LT,
+    TOKEN_GT,
+    TOKEN_LE,
+    TOKEN_GE,
     // logical
-    TOKEN_NOT = 30,
+    TOKEN_NOT = 50,
     TOKEN_AND,
     TOKEN_OR,
-    // control operators
-    TOKEN_LPARENT=40,
-    TOKEN_RPARENT,
-    // assignment
-    TOKEN_ASSIGN = 100
+
+    TOKEN_ASSIGN = 100,
+
+    TOKEN_ERROR = 200
 } TokenType;
 
 typedef struct
@@ -37,8 +58,8 @@ typedef struct
     int type;
     char name[TOKEN_TEXT_MAX];
     union {
-        int IntVal;
-        float FloatVal;
+        long long IntVal;
+        double FloatVal;
     } val;
     
 }Token;
