@@ -42,12 +42,8 @@ int main(void)
             continue;
         }
 
-        if (strcmp(buf, "error\n") == 0) {
-            print_error("Unexpected token near '%s'", buf);
-            continue;
-        }
-
         print_info("%s", buf);
     }
     return 0;
 }
+
