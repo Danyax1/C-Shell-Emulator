@@ -1,3 +1,4 @@
+
 CC      := gcc
 CFLAGS  := -Wall -Wextra -Werror -O2
 TEST_CFLAGS := -Wall -Wextra -O2
