@@ -1,24 +1,29 @@
 #ifndef SYM_TABLE_SHELL_
 #define SYM_TABLE_SHELL_
 
+#include <stdbool.h>
+
 typedef enum {
-    IntType,
-    FloatType,
-    ErrorType       // type of entry, that doesn't exist
-}type;
+    VAL_INT,
+    VAL_FLOAT,
+    VAL_BOOL,
+    VAL_NONE,
+    VAL_ERROR
+} ValueType;
 
 typedef struct{
-    type valueType;
+    ValueType valueType;
     union {
-        long long IntVal;
-        double FloatVal;
+        long long   IntVal;
+        double      FloatVal;
+        bool        BoolVal;
     }value;
-}value_record;
+}Value;
 
 typedef struct 
 {
     char* key;
-    value_record val;
+    Value val;
     
 }kv;
 
@@ -32,8 +37,8 @@ typedef struct
 sym_table create_table(void);
 void      free_table(sym_table table);
 
-void         set_variable(sym_table* table, char* varName, void* varValue, type varType);
-value_record get_variable(sym_table* table, char* varName);
+void         set_variable(sym_table* table, char* varName, void* varValue, ValueType varType);
+Value get_variable(sym_table* table, char* varName);
 // 0 = success; -1 = var doesn't exist
 int          del_variable(sym_table* table, char* varName);
 
