@@ -79,14 +79,107 @@ int recognize_keyword(Lexer* L, char* str)
 }
 
 Token next_token(Lexer *L){
-    // static int indentation = 0;
-    while(peek(L) == ' ' || peek(L) == '\t'){next(L);};
+    // is indent check is needed
+    // by default is enabled, but if indent error occured -> dissabled in order not to generate too many errors
+    static bool is_indent_enable = true;
+    if(!is_indent_enable){
+        goto skip_spaces_default;
+    }
+
+    static int indentation = 0;     // should always be divisible by 4, space = 1, tab = 4
+    static bool is_indent_needed = false;
+    static bool is_new_line = false;
+
+    // because we only return one token at the time, 
+    // and we might need to return several dedent tokens
+    // we keep track of dedent tokens needed to generate
+    static int dedent_needed = 0;
+
+    
+
+    if(!is_new_line){
+        while(peek(L) == ' ' || peek(L) == '\t'){next(L);};
+    }else if(is_new_line && !is_indent_needed){
+        // in that case only decreecing or remaining indent is possible
+        // if indent decreeced -> generate DEDENT
+        // also handle INCONSISTENT_INDENT and UNEXPECTED_INDENT
+        is_new_line = false;
+        int space_count = 0;
+        while(peek(L) == ' ' || peek(L) == '\t'){
+            if(peek(L) == ' ')  space_count++;
+            if(peek(L) == '\t') space_count += 4;
+            next(L);
+        }
+        if(space_count > indentation){
+            is_indent_enable = false;
+            dedent_needed = 0;
+            return (Token){.type=TOKEN_ERROR, .val.IntVal=UNEXPECTED_INDENT};
+        }
+        if(space_count % 4){
+            is_indent_enable = false;
+            dedent_needed = 0;
+            return (Token){.type=TOKEN_ERROR, .val.IntVal=INCONSISTENT_INDENT};
+        }
+        // if everything is correct -> count how many dedent tokens are needed and update indend count
+        // skip extra new lines
+        // if(peek(L) == '\n') {next(L);}
+        dedent_needed = (indentation - space_count) / 4;
+    }else if(is_new_line && is_indent_needed){
+        is_new_line = false;
+        is_indent_needed = false;
+        int space_count = 0;
+        while(peek(L) == ' ' || peek(L) == '\t'){
+            if(peek(L) == ' ')  space_count++;
+            if(peek(L) == '\t') space_count += 4;
+            next(L);
+        }
+        // check for errors
+        if(space_count <= indentation){
+            is_indent_enable = false;
+            dedent_needed = 0;
+            return (Token){.type=TOKEN_ERROR, .val.IntVal=EXPECTED_INDENT};
+        }
+        if(space_count - indentation != 4 && peek(L) != '\n'){
+            is_indent_enable = false;
+            dedent_needed = 0;
+            return (Token){.type=TOKEN_ERROR, .val.IntVal=INCONSISTENT_INDENT};
+        }
+        // skip extra new lines
+        // if(peek(L) == '\n') {next(L);}
+        indentation = space_count;
+        return (Token){.type=TOKEN_INDENT};
+    }
+
+    // dedent generator
+    if(dedent_needed){
+        --dedent_needed;
+        indentation -= 4;
+        return (Token){.type=TOKEN_DEDENT};
+    }
+
+skip_spaces_default:
+    while(peek(L) == ' ' || peek(L) == '\t'){next(L);}
+
+
     char c = peek(L);
     if(c == '\n'){
         Token t = {.type = TOKEN_EOL};
+        is_new_line = true;
         next(L);
         return t;
     } else if(c == '\0'){
+        // handle indentations
+        if(indentation){
+            indentation -= 4;
+            return (Token){.type=TOKEN_DEDENT};
+        }
+        // reset static variables 
+        is_indent_enable = true;
+        is_indent_needed = false;
+        is_new_line = false;
+        indentation = 0;
+        dedent_needed = 0;
+
         Token t = {.type = TOKEN_EOF};
         return t;
     }
@@ -104,17 +197,19 @@ Token next_token(Lexer *L){
         if(isalpha(peek(L))){
             // cannot be like 123abc
             // should return TOKEN_ERROR marked to the first space, eof or eol
+
+            // error recovery
             while(peek(L) != ' ' && peek(L) != '\n' && peek(L) != '\0'){
                 next(L);
                 length++;
             }
             Token err;
             err.type = TOKEN_ERROR;
+            err.val.IntVal = INVALID_TOKEN;
             char text[length+1];
             strncpy(text, start_pos, length);
             text[length] = '\0'; 
-            printf("DEBUG: %s\n", text);
-            strncpy(err.name, text, TOKEN_TEXT_MAX - 1);
+            strncpy(err.name, text, length+1);
             return err;
 
         }
@@ -124,8 +219,7 @@ Token next_token(Lexer *L){
         
         Token t;
         t.type = isFloat ? TOKEN_FLOAT : TOKEN_INT;
-        strncpy(t.name, text, TOKEN_TEXT_MAX - 1);
-        t.name[TOKEN_TEXT_MAX - 1] = '\0';
+        strncpy(t.name, text, length+1);
         if (isFloat) {
             t.val.FloatVal = atof(text);
         }else {
@@ -152,9 +246,8 @@ Token next_token(Lexer *L){
         strncpy(text, start_pos, length);
         text[length] = '\0';
         Token t;
-        t.type = TOKEN_IDENT;
-        strncpy(t.name, text, TOKEN_TEXT_MAX - 1);
-        t.name[TOKEN_TEXT_MAX - 1] = '\0';
+        t.type = TOKEN_ID;
+        strncpy(t.name, text, length+1);
         return t;
     }
     
@@ -165,15 +258,31 @@ Token next_token(Lexer *L){
         case '%': { next(L); return (Token){.type=TOKEN_MODULO,  .val={0}};}
         case '(': { next(L); return (Token){.type=TOKEN_LPARENT, .val={0}};}
         case ')': { next(L); return (Token){.type=TOKEN_RPARENT, .val={0}};}
-        case ':': { next(L); return (Token){.type=TOKEN_COLON,   .val={0}};}
+        case ':': {
+            next(L);
+            is_indent_needed = true;
+            return (Token){.type=TOKEN_COLON};
+        }
         case '!': {
             next(L);
             if(peek(L) == '=') {
                 next(L);
                 return (Token){.type=TOKEN_NEQ, .val={0}};
             }
-            printf("Unexpected token\n");
-            exit(1);
+            int len = 0;
+            char* start_pos = L->charToRead + L->pos;
+            while(peek(L) != ' ' && peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+                len++;
+            }
+            Token err;
+            err.type = TOKEN_ERROR;
+            err.val.IntVal = INVALID_TOKEN;
+            char text[len+1];
+            strncpy(text, start_pos, len);
+            text[len] = '\0'; 
+            strncpy(err.name, text, len+1);
+            return err;
         }
         case '/': {
             next(L);
@@ -208,7 +317,13 @@ Token next_token(Lexer *L){
             return (Token){.type=TOKEN_LT, .val={0}};
         };
         default:
-            printf("Unexpected token\n");
-            exit(1);
+            next(L);
+            char buf[2] = {0};
+            buf[0] = peek(L);
+            Token err;
+            err.type = TOKEN_ERROR;
+            err.val.IntVal = UNKNOWN_SYMBOL;
+            strncpy(err.name, buf, 2);
+            return err;
     }
 }

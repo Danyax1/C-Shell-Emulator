@@ -26,7 +26,7 @@ typedef enum {
     //data types
     TOKEN_INT = 20,
     TOKEN_FLOAT,
-    TOKEN_IDENT,
+    TOKEN_ID,
     TOKEN_TRUE,
     TOKEN_FALSE,
     // ariphmetic
@@ -55,10 +55,10 @@ typedef enum {
 
 typedef struct
 {
-    int type;
+    TokenType type;
     char name[TOKEN_TEXT_MAX];
     union {
-        long long IntVal;
+        long long IntVal;   // also can store ERROR code
         double FloatVal;
     } val;
     
@@ -69,6 +69,16 @@ typedef struct
     char *charToRead;
     unsigned int pos;
 }Lexer;
+
+typedef enum
+{
+    INVALID_TOKEN = 1,
+    UNKNOWN_SYMBOL,
+    UNEXPECTED_INDENT,
+    EXPECTED_INDENT,        // always Indentate after colon
+    INCONSISTENT_INDENT = 5
+}lexer_errors;
+
 
 Token next_token(Lexer *L);
 #endif //LEXER_IMPL_H
