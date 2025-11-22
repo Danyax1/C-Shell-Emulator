@@ -3,6 +3,6 @@
 
 #include "parser.h"
 
-void eval(AST* root);
+void eval(const char* programm);
 
 #endif // EVAL_SHELL_
