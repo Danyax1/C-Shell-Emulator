@@ -4,7 +4,7 @@
 #include <string.h>
 
 /**
- * Problem with linear probing forces to introduce могили for correct work of del
+ * Problem with linear probing forces to introduce for correct work of del
  */
 #define TOMBSTONE ((kv*) -1)
 
@@ -44,7 +44,7 @@ void free_table(sym_table table)
     free(table.data);
 }
 
-void set_variable(sym_table* table, char* varName, void* varValue, type varType){
+void set_variable(sym_table* table, char* varName, void* varValue, ValueType varType){
     if (!varName) return;
 
     float load = (float)table->size / (float)table->capacity;
@@ -69,7 +69,7 @@ void set_variable(sym_table* table, char* varName, void* varValue, type varType)
             newkv->key = strdup(varName);
             newkv->val.valueType = varType;
 
-            if(varType == IntType)
+            if(varType == VAL_INT)
                 newkv->val.value.IntVal = *(long long*)varValue;
             else
                 newkv->val.value.FloatVal = *(double*)varValue;
@@ -83,7 +83,7 @@ void set_variable(sym_table* table, char* varName, void* varValue, type varType)
         if(entry != TOMBSTONE && strcmp(entry->key, varName) == 0){
             entry->val.valueType = varType;
 
-            if(varType == IntType)
+            if(varType == VAL_INT)
                 entry->val.value.IntVal = *(long long*)varValue;
             else
                 entry->val.value.FloatVal = *(double*)varValue;
@@ -93,8 +93,8 @@ void set_variable(sym_table* table, char* varName, void* varValue, type varType)
     }
 }
 
-value_record get_variable(sym_table* table, char* varName){
-    if(!varName) return (value_record){.valueType = ErrorType};
+Value get_variable(sym_table* table, char* varName){
+    if(!varName) return (Value){.valueType = VAL_ERROR};
     int hash = hash_func(varName, table->capacity);
 
     for(int i = 0; i < table->capacity; ++i){
@@ -102,12 +102,12 @@ value_record get_variable(sym_table* table, char* varName){
         kv* entry = table->data[idx];
 
         if(entry == NULL)
-            return (value_record){.valueType = ErrorType};
+            return (Value){.valueType = VAL_ERROR};
 
         if(entry != TOMBSTONE && strcmp(entry->key, varName) == 0)
             return entry->val;
     }
-    return (value_record){.valueType = ErrorType};
+    return (Value){.valueType = VAL_ERROR};
 }
 
 int del_variable(sym_table* table, char* varName){
@@ -148,7 +148,7 @@ void resize_table(sym_table* table){
         kv* entry = old_data[i];
         if(entry != NULL && entry != TOMBSTONE){
             set_variable(table, entry->key,
-                         (entry->val.valueType == IntType ?
+                         (entry->val.valueType == VAL_INT ?
                            (void*)&entry->val.value.IntVal :
                            (void*)&entry->val.value.FloatVal),
                          entry->val.valueType);
