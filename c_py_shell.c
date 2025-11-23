@@ -1,53 +1,71 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#include "handle_io.h"
 #include "colors.h"
-#include <stdarg.h>
 
-static void print_error(const char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    fputs(C_BOLD C_RED "Error: " C_RESET, stderr);
-    vfprintf(stderr, fmt, ap);
-    fputc('\n', stderr);
-    va_end(ap);
-}
-
-static void print_info(const char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    fputs(C_BOLD C_GREEN, stdout);
-    vfprintf(stdout, fmt, ap);
-    fputs(C_RESET "\n", stdout);
-    va_end(ap);
-}
+#define MAX_BLOCK_SIZE 8192
 
 void enable_ansi_colors(void);
 
 int main(void)
 {
     enable_ansi_colors();
-
+    rl_bind_key('\t', rl_insert);
     printf(C_BOLD C_CYAN "    C Python Shell 2025\n\n" C_RESET);
     printf(C_GREEN "    Created by Fedya, Danya, Staryi\n" C_RESET);
     printf(C_YELLOW "    For help - help()\n" C_RESET);
 
+    while (1) {
+        char *input = readline(PROMPT_STR);
 
-    char buf[512];
-    while(1){
-        printf(PROMPT_STR);
-        if (!fgets(buf, sizeof(buf), stdin)) break;
+        if (!input) break;
 
-        if (buf[0] == '\n') {
-            print_info("Empty line — nothing to execute");
-            continue;
+        if (*input) add_history(input);
+
+        // Check for multiline block
+        if (ends_with_colon(input)) {
+            char block[MAX_BLOCK_SIZE] = {0};
+
+            strncat(block, input, MAX_BLOCK_SIZE - strlen(block) - 1);
+            strncat(block, "\n", MAX_BLOCK_SIZE - strlen(block) - 1);
+
+            free(input);
+
+            while (1) {
+                char *line = readline("... ");
+
+                if (!line) {
+                    printf("\n");
+                    break;
+                }
+
+                if (is_empty_line(line)) {
+                    free(line);
+                    break;
+                }
+
+                if (*line) add_history(line);
+
+                strncat(block, line, MAX_BLOCK_SIZE - strlen(block) - 1);
+                strncat(block, "\n", MAX_BLOCK_SIZE - strlen(block) - 1);
+
+                free(line);
+            }
+
+            if (handle_io(block) == IO_EXIT)
+                break;
         }
-
-        if (strcmp(buf, "error\n") == 0) {
-            print_error("Unexpected token near '%s'", buf);
-            continue;
+        else {
+            if (handle_io(input) == IO_EXIT) {
+                free(input);
+                break;
+            }
+            free(input);
         }
-
-        print_info("%s", buf);
     }
+
     return 0;
 }
