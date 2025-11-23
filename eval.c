@@ -18,7 +18,11 @@ bool is_true(Value v) {
 }
 
 Value eval_expr(sym_table T, AST *node) {
-    if (!node) exit(1);
+    if (!node) {
+        printf("Runtime error: null expression\n");
+        return make_int(0);
+    }
+
 
     switch (node->type) {
 
@@ -32,7 +36,12 @@ Value eval_expr(sym_table T, AST *node) {
             return make_bool(node->as.bool_val);
 
         case AST_VAR:
-            return get_variable(&T, node->as.var_name);
+            Value temp = get_variable(&T, node->as.var_name);
+            if(temp.valueType == VAL_ERROR){
+                printf("Unknown variable %s\n", node->as.var_name);
+            }
+            return temp;
+
 
         case AST_GROUPING:
             return eval_expr(T, node->as.grouping.expr);
@@ -67,8 +76,8 @@ Value eval_expr(sym_table T, AST *node) {
                 return make_bool(!is_true(r));
             }
 
-            printf("Unsupported unary operator\n");
-            exit(1);
+            printf("Runtime error: unsupported unary operator\n");
+            return make_int(0);
         }
 
         case AST_BINARY: {
@@ -93,6 +102,12 @@ Value eval_expr(sym_table T, AST *node) {
                     return make_int(L.value.IntVal * R.value.IntVal);
 
                 case TOKEN_DIV:
+                    float divisor = (R.valueType == VAL_FLOAT ? R.value.FloatVal : R.value.IntVal);
+
+                    if (divisor == 0) {
+                        printf("Runtime error: division by zero\n");
+                        return make_int(0);
+                    }
                     return make_float((L.valueType == VAL_FLOAT?L.value.FloatVal:L.value.IntVal) / (float)(R.valueType == VAL_FLOAT?R.value.FloatVal:R.value.IntVal));
 
                 case TOKEN_EQ:
@@ -120,13 +135,13 @@ Value eval_expr(sym_table T, AST *node) {
                     return make_bool(is_true(L) || is_true(R));
             }
 
-            printf("Unsupported binary op\n");
-            exit(1);
+            printf("Runtime error: unsupported binary operator\n");
+            return make_int(0);
         }
-
+        
         default:
-            printf("Invalid expression node\n");
-            exit(1);
+        printf("Invalid expression node\n");
+        return make_int(0);
     }
 }
 
@@ -144,7 +159,10 @@ void eval_stmt(sym_table T, AST *node) {
             if (v.valueType == VAL_INT) printf("%lld\n", v.value.IntVal);
             else if (v.valueType == VAL_FLOAT) printf("%lf\n", v.value.FloatVal);
             else if (v.valueType == VAL_BOOL) printf("%s\n", v.value.BoolVal ? "True" : "False");
-            else exit(1);
+            else {
+                printf("Runtime error: invalid print statement\n");
+                return;
+            }
             break;
         }
 
@@ -185,20 +203,20 @@ void eval_stmt(sym_table T, AST *node) {
 
         default:
             printf("Unknown statement node: %d\n", node->type);
-            exit(1);
     }
 }
 
 
-void eval(const char* programm)
+Value eval(const char* programm)
 {   
     static sym_table main_t;
     static bool is_programm_running = false;
 
-    if(!is_programm_running){
+    if (!is_programm_running) {
         main_t = create_table();
         is_programm_running = true; 
     }
+
     Lexer L;
     L.pos = 0;
     L.charToRead = programm;
@@ -207,6 +225,41 @@ void eval(const char* programm)
     P.L = &L;
 
     ParsingRes res = parse_programm(&P);
+
+    if (!res.root) {
+        return (Value){VAL_NONE};
+    }
+
+    if (res.root->type == AST_BLOCK) {
+        int count = res.root->as.block.count;
+
+        if (count == 0) return (Value){VAL_NONE};
+
+        AST *last = res.root->as.block.stmts[count - 1];
+
+        for (int i = 0; i < count - 1; i++) {
+            eval_stmt(main_t, res.root->as.block.stmts[i]);
+        }
+
+        if (last->type == AST_EXPR_STMT) {
+            AST *expr = last->as.expr_stmt.expr;
+
+            // DO NOT auto-print assignments
+            if (expr->type == AST_ASSIGN) {
+                eval_expr(main_t, expr);
+                return (Value){VAL_NONE};
+            }
+
+            return eval_expr(main_t, expr);
+        }
+
+        eval_stmt(main_t, last);
+        return (Value){VAL_NONE};
+    }
+
+    // Fallback 
     eval_stmt(main_t, res.root);
+    return (Value){VAL_NONE};
 }
+
 

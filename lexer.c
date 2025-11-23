@@ -79,6 +79,12 @@ int recognize_keyword(Lexer* L, char* str)
 }
 
 Token next_token(Lexer *L){
+    // error recovery
+    static bool last_was_error = false;
+    if(last_was_error){
+        last_was_error = false;
+        while(peek(L) == ' ' || peek(L) == '\t') next(L);
+    }
     // is indent check is needed
     // by default is enabled, but if indent error occured -> dissabled in order not to generate too many errors
     static bool is_indent_enable = true;
@@ -113,11 +119,21 @@ Token next_token(Lexer *L){
         if(space_count > indentation){
             is_indent_enable = false;
             dedent_needed = 0;
+            while(peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+            }
+
+            last_was_error = true;
             return (Token){.type=TOKEN_ERROR, .val.IntVal=UNEXPECTED_INDENT};
         }
         if(space_count % 4){
             is_indent_enable = false;
             dedent_needed = 0;
+            while(peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+            }
+
+            last_was_error = true;
             return (Token){.type=TOKEN_ERROR, .val.IntVal=INCONSISTENT_INDENT};
         }
         // if everything is correct -> count how many dedent tokens are needed and update indend count
@@ -137,11 +153,21 @@ Token next_token(Lexer *L){
         if(space_count <= indentation){
             is_indent_enable = false;
             dedent_needed = 0;
+            while(peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+            }
+
+            last_was_error = true;
             return (Token){.type=TOKEN_ERROR, .val.IntVal=EXPECTED_INDENT};
         }
         if(space_count - indentation != 4 && peek(L) != '\n'){
             is_indent_enable = false;
             dedent_needed = 0;
+            while(peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+            }
+
+            last_was_error = true;
             return (Token){.type=TOKEN_ERROR, .val.IntVal=INCONSISTENT_INDENT};
         }
         // skip extra new lines
@@ -210,6 +236,12 @@ skip_spaces_default:
             strncpy(text, start_pos, length);
             text[length] = '\0'; 
             strncpy(err.name, text, length+1);
+
+            while(peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+            }
+
+            last_was_error = true;
             return err;
 
         }
@@ -282,6 +314,11 @@ skip_spaces_default:
             strncpy(text, start_pos, len);
             text[len] = '\0'; 
             strncpy(err.name, text, len+1);
+            while(peek(L) != '\n' && peek(L) != '\0'){
+                next(L);
+            }
+
+            last_was_error = true;
             return err;
         }
         case '/': {

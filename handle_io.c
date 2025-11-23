@@ -1,5 +1,6 @@
 #include "handle_io.h"
 #include "eval.h"
+#include "sym_table.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -27,14 +28,39 @@ IOStatus handle_io(const char *input)
 {
     if (!input) return IO_OK;
 
-    if (strcmp(input, "quit") == 0)
+    if (strncmp(input, "quit\n", 5) == 0)
         return IO_EXIT;
 
-    if (strcmp(input, "help") == 0) {
+    if (strncmp(input, "help\n", 5) == 0) {
         printf("Available commands: help, quit\n");
         return IO_OK;
     }
 
-    eval(input);
+    if (is_empty_line(input)) return IO_OK;
+
+    // Evaluate input
+    Value result = eval(input);
+
+    // Only print if it's not a "statement result"
+    // (like assignment or void result)
+    if (result.valueType != VAL_NONE) {
+        switch (result.valueType)
+        {
+        case VAL_INT:
+            printf("%lld\n", result.value.IntVal);
+            break;
+        case VAL_FLOAT:
+            printf("%lf\n", result.value.FloatVal);
+            break;
+        case VAL_BOOL:
+            if(result.value.BoolVal == 1) {printf("True\n");}
+            else{printf("False\n");}
+            break;
+        
+        default:
+            break;
+        }
+    }
+
     return IO_OK;
 }
