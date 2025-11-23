@@ -21,9 +21,9 @@ void expect(Parser *P, TokenType type) {
         // later handle error
         printf("Syntax error: expected %d, got %d\n",
                 type, P->current.type);
-        printf("Lexer: %s", 
-        &(P->L->charToRead[P->L->pos]));
-        exit(1);
+        // printf("Lexer: %s", 
+        // &(P->L->charToRead[P->L->pos]));
+        // exit(1);
     }
 }
 
@@ -124,13 +124,13 @@ AST *parse_precedence(Parser *P, int min_bp)
 }
 
 AST* parse_expr(Parser* P){
-    printf("CALL: parse_expr\n");
+    // printf("CALL: parse_expr\n");
     // start pratt parsing
     return parse_precedence(P, 0);
 }
 
 AST* parse_statement(Parser* P){
-    printf("CALL: parse_statement\n");
+    // printf("CALL: parse_statement\n");
     
     TokenType type_of_stmn = P->current.type;
     switch (type_of_stmn) {
@@ -224,9 +224,9 @@ AST* parse_statement(Parser* P){
         default:
         printf("Unable to parse statement\n");
         printf("%d\n", type_of_stmn);
-        printf("Lexer: %s", 
-        &(P->L->charToRead[P->L->pos]));
-        exit(EXIT_FAILURE);
+        // printf("Lexer: %s", 
+        // &(P->L->charToRead[P->L->pos]));
+        // exit(EXIT_FAILURE);
 
         case TOKEN_EOL:
         expect(P, TOKEN_EOL);
@@ -238,7 +238,7 @@ AST* parse_stmt_list(Parser* P){
 
     AST *block = ast_make_block();
     
-    printf("CALL: parse_stmt_list\n");
+    // printf("CALL: parse_stmt_list\n");
     while(P->current.type != TOKEN_EOF && P->current.type != TOKEN_DEDENT){
         while(P->current.type == TOKEN_EOL){
             next_token_p(P);
@@ -251,7 +251,7 @@ AST* parse_stmt_list(Parser* P){
 
 ParsingRes parse_programm(Parser* P)
 {
-    printf("CALL: parse_programm\n");
+    // printf("CALL: parse_programm\n");
     
     next_token_p(P);              // load first token
     AST* root = parse_stmt_list(P);
