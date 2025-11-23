@@ -39,6 +39,12 @@ AST *ast_make_var(const char* name)
     n->as.var_name = strdup(name);
     return n;
 }
+AST* ast_make_del(const char* name)
+{
+    AST *n = make_node(AST_DEL);
+    n->as.var_name = strdup(name);
+    return n;
+}
 
 AST* ast_make_unary(TokenType op, AST* rhs)
 {
@@ -143,6 +149,10 @@ void ast_free(AST* n)
         case AST_BINARY:
             ast_free(n->as.binary.left);
             ast_free(n->as.binary.right);
+            break;
+            
+        case AST_DEL:
+            free(n->as.var_name);
             break;
 
         case AST_ASSIGN:

@@ -221,10 +221,24 @@ AST* parse_statement(Parser* P){
             return ast_make_expr_stmt(expr);
         }
         
-        // case TOKEN_DEL:
-        //     expect(P, TOKEN_DEL);
-        //     expect(P, TOKEN_ID);
-        //     break;
+        case TOKEN_DEL:
+            {
+                expect(P, TOKEN_DEL);
+                if (P->current.type != TOKEN_ID) {
+                    printf("Syntax error: expected identifier after 'del'\n");
+                    while (P->current.type != TOKEN_EOL && P->current.type != TOKEN_EOF) {
+                        next_token_p(P);
+                    }
+                    expect(P, TOKEN_EOL);
+                    return NULL;
+                }
+                char *name = strdup(P->current.name ? P->current.name : "");
+                expect(P, TOKEN_ID);
+                expect(P, TOKEN_EOL);
+                AST *node = ast_make_del(name);
+                free(name);
+                return node;
+            }
         
         case TOKEN_PRINT:
         {

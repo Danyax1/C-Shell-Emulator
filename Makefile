@@ -17,7 +17,7 @@ TEST_SYM_TABLE_CPP = test/test_sym_table.cpp
 TEST_LEXER_BIN = bin/test_lexer
 TEST_SYM_TABLE_BIN = bin/test_sym_table
 
-SHELL_BIN = bin/c_shell
+SHELL_BIN = bin/py_shell
 
 .PHONY: all clean run test help
 

@@ -59,6 +59,12 @@ int recognize_keyword(Lexer* L, char* str)
             return TOKEN_OR;
         }
         break;
+    case 'd':
+        if(strncmp(str, "del", 3) == 0 && (str[3] == ' ' || str[3] == '(')){
+            L->pos += 3;
+            return TOKEN_DEL;
+        }
+        break;
     case 'T':
         if(strncmp(str, "True", 4) == 0 && !isalnum(str[4])){
             L->pos += 4;

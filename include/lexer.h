@@ -52,6 +52,8 @@ typedef enum {
     TOKEN_AND,
     TOKEN_OR,
 
+    TOKEN_DEL,
+
     TOKEN_ASSIGN = 100,
 
     TOKEN_ERROR = 200

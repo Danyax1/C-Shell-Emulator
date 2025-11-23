@@ -18,7 +18,8 @@ typedef enum {
     AST_PRINT,
     AST_BLOCK,
     AST_IF,
-    AST_WHILE
+    AST_WHILE,
+    AST_DEL
 } AST_type;
 
 typedef struct ast AST;
@@ -95,6 +96,7 @@ AST* ast_make_int(int v);
 AST* ast_make_float(float v);
 AST* ast_make_bool(bool v);
 AST* ast_make_var(const char* name);
+AST* ast_make_del(const char* name);
 AST* ast_make_unary(TokenType op, AST *right);
 AST* ast_make_binary(AST* left, TokenType op, AST* right);
 AST* ast_make_assign(const char* var, AST* value);

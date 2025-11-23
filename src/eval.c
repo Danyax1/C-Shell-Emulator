@@ -4,6 +4,9 @@
 #include "sym_table.h"
 #include "eval.h"
 
+static sym_table main_t;
+static bool is_programm_running = false;
+
 Value make_int(int x)   { return (Value){VAL_INT,   .value.IntVal=x}; }
 Value make_float(float x){ return (Value){VAL_FLOAT, .value.FloatVal=x}; }
 Value make_bool(bool x) { return (Value){VAL_BOOL,  .value.BoolVal=x}; }
@@ -201,6 +204,12 @@ void eval_stmt(sym_table T, AST *node) {
             eval_expr(T, node);
             break;
 
+        case AST_DEL:
+            int res = del_variable(&main_t, node->as.var_name);
+            if (res == -1) {
+                printf("Error: cannot delete '%s' (not found)\n", node->as.var_name);
+            }
+            break;
         default:
             printf("Unknown statement node: %d\n", node->type);
     }
@@ -209,8 +218,6 @@ void eval_stmt(sym_table T, AST *node) {
 
 Value eval(const char* programm)
 {   
-    static sym_table main_t;
-    static bool is_programm_running = false;
 
     if (!is_programm_running) {
         main_t = create_table();
