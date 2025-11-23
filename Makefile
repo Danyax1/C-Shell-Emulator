@@ -13,7 +13,9 @@ LEXER_TEST_BIN  := test_lexer
 all: $(SHELL_BIN) $(LEXER_TEST_BIN)
 
 $(SHELL_BIN): $(SHELL_OBJS)
+
 	$(CC) $(CFLAGS) $^ -o $@ -lreadline
+
 
 $(LEXER_TEST_BIN): $(LEXER_TEST_SRCS)
 	$(CC) $(TEST_CFLAGS) $^ -o $@
