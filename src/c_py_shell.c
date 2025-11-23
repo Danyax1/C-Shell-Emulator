@@ -7,11 +7,55 @@
 #include "colors.h"
 
 #define MAX_BLOCK_SIZE 8192
+#define MAX_FILE_SIZE 65536
 
 void enable_ansi_colors(void);
 
-int main(void)
-{
+static char* read_file(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        fprintf(stderr, "Error: Cannot open file '%s'\n", filename);
+        return NULL;
+    }
+
+    char *content = malloc(MAX_FILE_SIZE);
+    if (!content) {
+        fclose(file);
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+
+    size_t total = 0;
+    size_t bytes_read;
+    
+    while ((bytes_read = fread(content + total, 1, MAX_FILE_SIZE - total - 1, file)) > 0) {
+        total += bytes_read;
+        if (total >= MAX_FILE_SIZE - 1) {
+            fprintf(stderr, "Error: File too large (max %d bytes)\n", MAX_FILE_SIZE);
+            free(content);
+            fclose(file);
+            return NULL;
+        }
+    }
+    
+    content[total] = '\0';
+    fclose(file);
+    return content;
+}
+
+static int run_script(const char *filename) {
+    char *content = read_file(filename);
+    if (!content) {
+        return 1;
+    }
+
+    int result = handle_io(content);
+    free(content);
+    
+    return (result == IO_EXIT) ? 1 : 0;
+}
+
+static void run_repl(void) {
     enable_ansi_colors();
     rl_bind_key('\t', rl_insert);
     printf(C_BOLD C_CYAN "    C Python Shell 2025\n\n" C_RESET);
@@ -66,8 +110,19 @@ int main(void)
                 free(input);
                 break;
             }
+            free(input);
         }
     }
+}
 
-    return 0;
+int main(int argc, char *argv[])
+{
+    if (argc > 1) {
+        // Script mode: execute file
+        return run_script(argv[1]);
+    } else {
+        // REPL mode: interactive shell
+        run_repl();
+        return 0;
+    }
 }

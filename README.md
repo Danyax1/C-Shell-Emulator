@@ -19,6 +19,12 @@ cd bin
 ./py_shell
 ```
 
+or run a script from file
+
+```
+./py_shell <path-to-file>
+```
+
 3. For tests run
 ```
 make test

@@ -93,7 +93,7 @@ AST *nud(Parser *P, Token tok)
             return ast_make_unary(TOKEN_NOT, rhs);
         }
         default:
-            printf("Unexpected token in expression (nud): %d\n", tok.type);
+            printf("Unexpected token in expression: %d\n", tok.type);
             while(P->current.type != TOKEN_EOL && P->current.type != TOKEN_RPARENT && P->current.type != TOKEN_EOF){
                 next_token_p(P);
             }
@@ -198,6 +198,15 @@ AST* parse_statement(Parser* P){
         {
             expect(P, TOKEN_WHILE);
             AST *cond = parse_expr(P);
+            if (P->current.type != TOKEN_COLON) {
+                printf("Syntax error: expected :\n");
+                next_token_p(P);
+                while (P->current.type != TOKEN_EOL && P->current.type != TOKEN_EOF) {
+                    next_token_p(P);
+                }
+                expect(P, TOKEN_EOL);
+                return NULL;
+            }
             expect(P, TOKEN_COLON);
             expect(P, TOKEN_EOL);
             expect(P, TOKEN_INDENT);
@@ -225,6 +234,7 @@ AST* parse_statement(Parser* P){
                 expect(P, TOKEN_DEL);
                 if (P->current.type != TOKEN_ID) {
                     printf("Syntax error: expected identifier after 'del'\n");
+                    next_token_p(P);
                     while (P->current.type != TOKEN_EOL && P->current.type != TOKEN_EOF) {
                         next_token_p(P);
                     }
@@ -252,6 +262,11 @@ AST* parse_statement(Parser* P){
         default:
             printf("Unable to parse statement\n");
             printf("%d\n", type_of_stmn);
+            next_token_p(P);
+            while (P->current.type != TOKEN_EOL && P->current.type != TOKEN_EOF) {
+                next_token_p(P);
+            }
+            expect(P, TOKEN_EOL);
             break;
         // printf("Lexer: %s", 
         // &(P->L->charToRead[P->L->pos]));
