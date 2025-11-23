@@ -2,7 +2,8 @@
 #define EVAL_SHELL_
 
 #include "parser.h"
+#include "sym_table.h"
 
-void eval(const char* programm);
+Value eval(const char *input);
 
 #endif // EVAL_SHELL_

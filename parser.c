@@ -21,6 +21,11 @@ void expect(Parser *P, TokenType type) {
         // later handle error
         printf("Syntax error: expected %d, got %d\n",
                 type, P->current.type);
+        next_token_p(P);
+        while(P->current.type != TOKEN_EOL && P->current.type != TOKEN_RPARENT && P->current.type != TOKEN_EOF){
+            next_token_p(P);
+        }
+        return ast_make_assign("", NULL);
         // printf("Lexer: %s", 
         // &(P->L->charToRead[P->L->pos]));
         // exit(1);
@@ -72,7 +77,10 @@ AST *nud(Parser *P, Token tok)
             AST *expr = parse_precedence(P, 0);
             if (P->current.type != TOKEN_RPARENT) {
                 printf("Syntax error: expected ')'\n");
-                exit(1);
+                next_token_p(P);
+                while(P->current.type != TOKEN_EOL && P->current.type != TOKEN_RPARENT && P->current.type != TOKEN_EOF){
+                    next_token_p(P);
+                }
             }
             next_token_p(P); // consume RPARENT
             return ast_make_grouping(expr);
@@ -87,7 +95,10 @@ AST *nud(Parser *P, Token tok)
         }
         default:
             printf("Unexpected token in expression (nud): %d\n", tok.type);
-            exit(1);
+            while(P->current.type != TOKEN_EOL && P->current.type != TOKEN_RPARENT && P->current.type != TOKEN_EOF){
+                next_token_p(P);
+            }
+            return ast_make_int(0);
     }
 }
 
@@ -96,7 +107,11 @@ AST *led(Parser *P, AST *left, Token op)
     if (op.type == TOKEN_ASSIGN) {
         if (!left || left->type != AST_VAR) {
             printf("Syntax error: left side of assignment must be a variable\n");
-            exit(1);
+            next_token_p(P);
+            while(P->current.type != TOKEN_EOL && P->current.type != TOKEN_RPARENT && P->current.type != TOKEN_EOF){
+                next_token_p(P);
+            }
+            return ast_make_assign("", NULL);
         }
         AST *right = parse_precedence(P, prec(op.type) - 1);
         AST *assign = ast_make_assign(left->as.assign.var_name, right);

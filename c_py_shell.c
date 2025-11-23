@@ -60,15 +60,12 @@ int main(void)
         }
         else {
             char line[512] = {0};
-            
-            strcat(line, "print(");
             strncat(line, input, 512);
-            strcat(line, ")\n");
+            strcat(line, "\n");
             if (handle_io(line) == IO_EXIT) {
                 free(input);
                 break;
             }
-            free(input);
         }
     }
 
