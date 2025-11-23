@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "lexer.h"
 #include "parser.h"
 #include "sym_table.h"
 #include "eval.h"
@@ -189,9 +190,23 @@ void eval_stmt(sym_table T, AST *node) {
 }
 
 
-void eval(AST *root)
-{
-    sym_table main_t = create_table();
-    eval_stmt(main_t, root);
+void eval(const char* programm)
+{   
+    static sym_table main_t;
+    static bool is_programm_running = false;
+
+    if(!is_programm_running){
+        main_t = create_table();
+        is_programm_running = true; 
+    }
+    Lexer L;
+    L.pos = 0;
+    L.charToRead = programm;
+
+    Parser P;
+    P.L = &L;
+
+    ParsingRes res = parse_programm(&P);
+    eval_stmt(main_t, res.root);
 }
 

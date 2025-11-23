@@ -59,7 +59,12 @@ int main(void)
                 break;
         }
         else {
-            if (handle_io(input) == IO_EXIT) {
+            char line[512] = {0};
+            
+            strcat(line, "print(");
+            strncat(line, input, 512);
+            strcat(line, ")\n");
+            if (handle_io(line) == IO_EXIT) {
                 free(input);
                 break;
             }
@@ -69,4 +74,3 @@ int main(void)
 
     return 0;
 }
-
