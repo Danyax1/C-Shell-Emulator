@@ -9,5 +9,6 @@ void enable_ansi_colors(void) {
     SetConsoleMode(hOut, mode);
 }
 #else
-void enable_ansi_colors(void) { /* ANSI працює з коробки */ }
+void enable_ansi_colors(void) {  }
 #endif
+
