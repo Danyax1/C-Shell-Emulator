@@ -7,3 +7,19 @@ help functionality.
 - Morales Daniel (Danyax1)
 - Vesselyi Nestor (Vessely1)
 - Klymenko Fedir (FreDDiKnoW)
+
+# Quick start
+1. Make sure you have gcc, make and GNU readline installed
+
+2. Run the following
+
+```
+make
+cd bin
+./py_shell
+```
+
+3. For tests run
+```
+make test
+```

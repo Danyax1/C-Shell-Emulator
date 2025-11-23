@@ -17,7 +17,9 @@ bool is_true(Value v) {
         case VAL_INT:  return v.value.IntVal != 0;
         case VAL_FLOAT:return v.value.FloatVal != 0.0f;
         case VAL_NONE: return false;
+        case VAL_ERROR: return false;
     }
+    return false;
 }
 
 Value eval_expr(sym_table T, AST *node) {
@@ -61,6 +63,9 @@ Value eval_expr(sym_table T, AST *node) {
                 break;
             case VAL_BOOL:
                 set_variable(&T, node->as.assign.var_name, &v.value.BoolVal ,v.valueType);
+                break;
+            case VAL_NONE:
+            case VAL_ERROR:
                 break;
             
             }
@@ -226,7 +231,7 @@ Value eval(const char* programm)
 
     Lexer L;
     L.pos = 0;
-    L.charToRead = programm;
+    L.charToRead = (char*)programm;
 
     Parser P;
     P.L = &L;
@@ -234,13 +239,13 @@ Value eval(const char* programm)
     ParsingRes res = parse_programm(&P);
 
     if (!res.root) {
-        return (Value){VAL_NONE};
+        return (Value){.valueType=VAL_NONE,.value.IntVal=0};
     }
 
     if (res.root->type == AST_BLOCK) {
         int count = res.root->as.block.count;
 
-        if (count == 0) return (Value){VAL_NONE};
+        if (count == 0) return (Value){.valueType=VAL_NONE,.value.IntVal=0};
 
         AST *last = res.root->as.block.stmts[count - 1];
 
@@ -254,19 +259,19 @@ Value eval(const char* programm)
             // DO NOT auto-print assignments
             if (expr->type == AST_ASSIGN) {
                 eval_expr(main_t, expr);
-                return (Value){VAL_NONE};
+                return (Value){.valueType=VAL_NONE,.value.IntVal=0};
             }
 
             return eval_expr(main_t, expr);
         }
 
         eval_stmt(main_t, last);
-        return (Value){VAL_NONE};
+        return (Value){.valueType=VAL_NONE,.value.IntVal=0};
     }
 
     // Fallback 
     eval_stmt(main_t, res.root);
-    return (Value){VAL_NONE};
+    return (Value){.valueType=VAL_NONE,.value.IntVal=0};
 }
 
 void free_eval(void){

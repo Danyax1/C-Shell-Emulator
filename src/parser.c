@@ -25,7 +25,6 @@ void expect(Parser *P, TokenType type) {
         while(P->current.type != TOKEN_EOL && P->current.type != TOKEN_RPARENT && P->current.type != TOKEN_EOF){
             next_token_p(P);
         }
-        return ast_make_assign("", NULL);
         // printf("Lexer: %s", 
         // &(P->L->charToRead[P->L->pos]));
         // exit(1);
@@ -72,7 +71,7 @@ AST *nud(Parser *P, Token tok)
         case TOKEN_FALSE:
             return ast_make_bool(false);
         case TOKEN_ID:
-            return ast_make_var(tok.name ? tok.name : "");
+            return ast_make_var(tok.name);
         case TOKEN_LPARENT: {
             AST *expr = parse_precedence(P, 0);
             if (P->current.type != TOKEN_RPARENT) {
@@ -232,7 +231,7 @@ AST* parse_statement(Parser* P){
                     expect(P, TOKEN_EOL);
                     return NULL;
                 }
-                char *name = strdup(P->current.name ? P->current.name : "");
+                char *name = strdup(P->current.name);
                 expect(P, TOKEN_ID);
                 expect(P, TOKEN_EOL);
                 AST *node = ast_make_del(name);
@@ -251,8 +250,9 @@ AST* parse_statement(Parser* P){
         }
         
         default:
-        printf("Unable to parse statement\n");
-        printf("%d\n", type_of_stmn);
+            printf("Unable to parse statement\n");
+            printf("%d\n", type_of_stmn);
+            break;
         // printf("Lexer: %s", 
         // &(P->L->charToRead[P->L->pos]));
         // exit(EXIT_FAILURE);
@@ -262,6 +262,7 @@ AST* parse_statement(Parser* P){
         return NULL;
 
     }
+    return NULL;
 }
 AST* parse_stmt_list(Parser* P){
 

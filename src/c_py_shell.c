@@ -60,7 +60,7 @@ int main(void)
         }
         else {
             char line[512] = {0};
-            strncat(line, input, 512);
+            strncat(line, input, 511);
             strcat(line, "\n");
             if (handle_io(line) == IO_EXIT) {
                 free(input);
