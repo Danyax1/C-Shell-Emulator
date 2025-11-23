@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     VAL_INT,
     VAL_FLOAT,
@@ -42,4 +46,7 @@ Value get_variable(sym_table* table, char* varName);
 // 0 = success; -1 = var doesn't exist
 int          del_variable(sym_table* table, char* varName);
 
+#ifdef __cplusplus
+}
+#endif
 #endif //SYM_TABLE_SHELL_

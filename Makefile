@@ -1,57 +1,86 @@
-CC := gcc
-# use an explicit relative include path so builds from WSL/Git-Bash find headers
-CFLAGS := -Wall -Wextra -O2 -I./include
-TEST_CFLAGS := $(CFLAGS)
-LDFLAGS :=
+CC = gcc
+CXX = g++
+CFLAGS = -Wall -Wextra -O2 -I./include
+CXXFLAGS = -Wall -Wextra -O2 -std=c++17 -I./include
+LDLIBS = -lreadline
+GTEST_LIBS = -lgtest -lgtest_main -pthread
 
-SRCDIR := src
-TESTDIR := test
-OBJDIR := obj
-BINDIR := bin
+SHELL_C_FILES = src/c_py_shell.c src/color_support.c src/handle_io.c src/eval.c src/parser.c src/lexer.c src/ast.c src/sym_table.c
 
-SHELL_SRCS := c_py_shell.c color_support.c handle_io.c eval.c parser.c lexer.c ast.c sym_table.c
-SHELL_SRCS := $(addprefix $(SRCDIR)/,$(SHELL_SRCS))
-SHELL_OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SHELL_SRCS))
-SHELL_BIN := $(BINDIR)/c_shell
+SHELL_OBJ_FILES = obj/color_support.o obj/handle_io.o obj/eval.o obj/parser.o obj/lexer.o obj/ast.o obj/sym_table.o
 
-LEXER_TEST_BIN := $(BINDIR)/test_lexer
-LEXER_TEST_SRCS := $(TESTDIR)/test_lexer.c $(SRCDIR)/lexer.c
+MAIN_OBJ = obj/c_py_shell.o
+
+TEST_LEXER_CPP = test/test_lexer.cpp
+TEST_SYM_TABLE_CPP = test/test_sym_table.cpp
+
+TEST_LEXER_BIN = bin/test_lexer
+TEST_SYM_TABLE_BIN = bin/test_sym_table
+
+SHELL_BIN = bin/c_shell
 
 .PHONY: all clean run test help
-all: $(SHELL_BIN) $(LEXER_TEST_BIN)
 
-$(SHELL_BIN): $(SHELL_OBJS) | $(BINDIR)
-	$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ -lreadline
+all: $(SHELL_BIN)
 
-$(LEXER_TEST_BIN): $(LEXER_TEST_SRCS) | $(BINDIR)
-	$(CC) $(TEST_CFLAGS) -Iinclude $^ -o $@
+$(SHELL_BIN): $(SHELL_OBJ_FILES) $(MAIN_OBJ) | bin
+	$(CC) $(CFLAGS) $(SHELL_OBJ_FILES) $(MAIN_OBJ) -o $(SHELL_BIN) $(LDLIBS)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(TEST_LEXER_BIN): $(TEST_LEXER_CPP) $(SHELL_OBJ_FILES) | bin
+	$(CXX) $(CXXFLAGS) $(TEST_LEXER_CPP) $(SHELL_OBJ_FILES) -o $(TEST_LEXER_BIN) $(GTEST_LIBS) $(LDLIBS)
 
-$(OBJDIR) $(BINDIR):
-	mkdir -p $@
+$(TEST_SYM_TABLE_BIN): $(TEST_SYM_TABLE_CPP) $(SHELL_OBJ_FILES) | bin
+	$(CXX) $(CXXFLAGS) $(TEST_SYM_TABLE_CPP) $(SHELL_OBJ_FILES) -o $(TEST_SYM_TABLE_BIN) $(GTEST_LIBS) $(LDLIBS)
 
-.PHONY: clean
+obj/c_py_shell.o: src/c_py_shell.c | obj
+	$(CC) $(CFLAGS) -c src/c_py_shell.c -o obj/c_py_shell.o
+
+obj/color_support.o: src/color_support.c | obj
+	$(CC) $(CFLAGS) -c src/color_support.c -o obj/color_support.o
+
+obj/handle_io.o: src/handle_io.c | obj
+	$(CC) $(CFLAGS) -c src/handle_io.c -o obj/handle_io.o
+
+obj/eval.o: src/eval.c | obj
+	$(CC) $(CFLAGS) -c src/eval.c -o obj/eval.o
+
+obj/parser.o: src/parser.c | obj
+	$(CC) $(CFLAGS) -c src/parser.c -o obj/parser.o
+
+obj/lexer.o: src/lexer.c | obj
+	$(CC) $(CFLAGS) -c src/lexer.c -o obj/lexer.o
+
+obj/ast.o: src/ast.c | obj
+	$(CC) $(CFLAGS) -c src/ast.c -o obj/ast.o
+
+obj/sym_table.o: src/sym_table.c | obj
+	$(CC) $(CFLAGS) -c src/sym_table.c -o obj/sym_table.o
+
+obj:
+	mkdir -p obj
+
+bin:
+	mkdir -p bin
+
 clean:
-	rm -rf $(OBJDIR) $(BINDIR) *.o $(notdir $(SHELL_BIN)) $(notdir $(LEXER_TEST_BIN))
+	rm -rf obj bin
 
-.PHONY: run
 run: $(SHELL_BIN)
 	./$(SHELL_BIN)
 
-.PHONY: test
-test: $(LEXER_TEST_BIN)
-	@echo "Run $(LEXER_TEST_BIN) to execute lexer tests"
+test: $(TEST_LEXER_BIN) $(TEST_SYM_TABLE_BIN)
+	@echo "Running test_lexer..."
+	./$(TEST_LEXER_BIN)
+	@echo ""
+	@echo "Running test_sym_table..."
+	./$(TEST_SYM_TABLE_BIN)
+	@echo ""
+	@echo "All tests passed."
 
-.PHONY: help
 help:
 	@echo "Usage: make [target]"
-	@echo "Targets:" 
-	@echo "  all (default) - build shell and tests"
+	@echo "Targets:"
+	@echo "  all (default) - build shell binary"
+	@echo "  test          - build and run all tests"
+	@echo "  run           - run shell"
 	@echo "  clean         - remove build artifacts"
-	@echo "  run           - run the shell binary"
-	@echo "  test          - build test binaries" 
-
-CC      := gcc
-CFLAGS  := -Wall -Wextra -O2

@@ -7,6 +7,10 @@
 #include <ctype.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TOKEN_TEXT_MAX 64
 typedef enum {
     // syntax
@@ -81,4 +85,9 @@ typedef enum
 
 
 Token next_token(Lexer *L);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif //LEXER_IMPL_H
