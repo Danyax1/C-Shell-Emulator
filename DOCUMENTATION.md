@@ -57,7 +57,6 @@ Running the shell
 
 ```powershell
 ./c_shell
-# on Windows: .\c_shell.exe
 ```
 
 - Inside the shell you can run expressions and small blocks using indentation:
@@ -78,7 +77,6 @@ Testing
 
 ```powershell
 ./test_lexer
-# on Windows: .\test_lexer.exe
 ```
 
 - Compile and run the symbol-table test manually:
@@ -86,7 +84,6 @@ Testing
 ```powershell
 gcc -Wall -Wextra -O2 test_sym_table.c sym_table.c -o test_sym_table
 ./test_sym_table
-# on Windows: .\test_sym_table.exe
 ```
 
 Troubleshooting & Known Issues

@@ -269,4 +269,6 @@ Value eval(const char* programm)
     return (Value){VAL_NONE};
 }
 
-
+void free_eval(void){
+    free_table(main_t);
+}

@@ -4,6 +4,8 @@
 #include "parser.h"
 #include "sym_table.h"
 
+void free_eval(void);
+
 Value eval(const char *input);
 
 #endif // EVAL_SHELL_

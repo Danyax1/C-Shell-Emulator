@@ -28,11 +28,17 @@ IOStatus handle_io(const char *input)
 {
     if (!input) return IO_OK;
 
-    if (strncmp(input, "quit\n", 5) == 0)
+    if (strncmp(input, "quit\n", 5) == 0 || strncmp(input, "quit()\n", 7) == 0){
+        free_eval();
         return IO_EXIT;
+    }
 
-    if (strncmp(input, "help\n", 5) == 0) {
-        printf("Available commands: help, quit\n");
+    if (strncmp(input, "help\n", 5) == 0 || strncmp(input, "help()\n", 7) == 0) {
+        printf("Welcome to Python shell!\n");
+        printf("You can use it for ariphmetic and locigal operations\n");
+        printf("Shell supports integers, floats, True and False\n");
+        printf("For flow control shell provides if/elif/else and while statements\n");
+        printf("For further info refer to the DOCUMENTATION.md\n");
         return IO_OK;
     }
 

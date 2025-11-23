@@ -150,7 +150,7 @@ void ast_free(AST* n)
             ast_free(n->as.binary.left);
             ast_free(n->as.binary.right);
             break;
-            
+
         case AST_DEL:
             free(n->as.var_name);
             break;
@@ -200,6 +200,7 @@ void ast_free(AST* n)
         default:
             break;
     }
+    free(n);
 }
 
 #include "ast.h"
