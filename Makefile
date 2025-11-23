@@ -1,8 +1,8 @@
 CC      := gcc
-CFLAGS  := -Wall -Wextra -Werror -O2
+CFLAGS  := -Wall -Wextra -g
 TEST_CFLAGS := -Wall -Wextra -O2
 
-SHELL_SRCS := c_py_shell.c color_support.c
+SHELL_SRCS := c_py_shell.c color_support.c handle_io.c eval.c parser.c lexer.c ast.c sym_table.c
 SHELL_OBJS := $(SHELL_SRCS:.c=.o)
 SHELL_BIN  := c_shell
 
