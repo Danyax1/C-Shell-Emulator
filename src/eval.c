@@ -117,6 +117,14 @@ Value eval_expr(sym_table T, AST *node) {
                         return make_int(0);
                     }
                     return make_float((L.valueType == VAL_FLOAT?L.value.FloatVal:L.value.IntVal) / (float)(R.valueType == VAL_FLOAT?R.value.FloatVal:R.value.IntVal));
+                case TOKEN_DIV_INT:
+                    int divisor_int = (int)(R.valueType == VAL_FLOAT ? R.value.FloatVal : R.value.IntVal);
+
+                    if (divisor_int == 0) {
+                        printf("Runtime error: division by zero\n");
+                        return make_int(0);
+                    }
+                    return make_int((int)(L.valueType == VAL_FLOAT?L.value.FloatVal:L.value.IntVal) / divisor_int);
 
                 case TOKEN_EQ:
                     return make_bool(L.value.IntVal == R.value.IntVal);

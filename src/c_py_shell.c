@@ -8,8 +8,19 @@
 
 #define MAX_BLOCK_SIZE 8192
 #define MAX_FILE_SIZE 65536
+#define MAX_LINE_SIZE 512
 
 void enable_ansi_colors(void);
+
+static int is_whitespace_only(const char *line) {
+    while (*line) {
+        if (!isspace((unsigned char)*line)) {
+            return 0; // Not whitespace-only
+        }
+        line++;
+    }
+    return 1;
+}
 
 static char* read_file(const char *filename) {
     FILE *file = fopen(filename, "r");
@@ -26,20 +37,34 @@ static char* read_file(const char *filename) {
     }
 
     size_t total = 0;
-    size_t bytes_read;
-    
-    while ((bytes_read = fread(content + total, 1, MAX_FILE_SIZE - total - 1, file)) > 0) {
-        total += bytes_read;
-        if (total >= MAX_FILE_SIZE - 1) {
-            fprintf(stderr, "Error: File too large (max %d bytes)\n", MAX_FILE_SIZE);
+    char line[MAX_LINE_SIZE];
+
+    while (fgets(line, sizeof(line), file)) {
+
+        // skip empty lines
+        if (is_whitespace_only(line))
+            continue;
+
+        size_t len = strlen(line);
+
+        if (total + len + 2 >= MAX_FILE_SIZE) {
+            fprintf(stderr, "Error: File too large\n");
             free(content);
             fclose(file);
             return NULL;
         }
+
+        memcpy(content + total, line, len);
+        total += len;
     }
-    
-    content[total] = '\0';
+
     fclose(file);
+
+    if (total == 0 || content[total - 1] != '\n') {
+        content[total++] = '\n';
+    }
+
+    content[total] = '\0';
     return content;
 }
 

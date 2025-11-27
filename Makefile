@@ -1,6 +1,6 @@
 CC = gcc
 CXX = g++
-CFLAGS = -Wall -Wextra -O2 -I./include
+CFLAGS = -Wall -Wextra -g -I./include
 CXXFLAGS = -Wall -Wextra -O2 -std=c++17 -I./include
 LDLIBS = -lreadline
 GTEST_LIBS = -lgtest -lgtest_main -pthread
